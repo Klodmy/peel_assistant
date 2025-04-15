@@ -2,6 +2,7 @@ import csv
 import json
 import re
 from datetime import date
+from collections import Counter
 
 
 
@@ -110,11 +111,33 @@ def to_invoice(assignments, reports):
             non_match.append(r)
     return non_match
 
+# counts reports with same WO#
+def dup_counter(to_inv):
+    # set with WO that has duplicates
+    dup = set()
+    # list with all WO
+    wos = []
+    # looping through reports
+    for r in to_inv:
+        for k in r:
+            if k == "Work Order Number:":
+                # if this WO is already in the list, adds it to duplicate set
+                if r[k] in wos:
+                    dup.add(r[k])
+            # adds WO to the list of all WOs
+            wos.append(r[k])
+    return dup
+
+
 
 # returns formated list of reports with only values that are necessary for invoicing
 def format(ready_reports):
     # list of needed headers in specific order
-    keep = ["Address:", "Work Order Number:", "Problem Code:", "Yard", "Assignment Type:", "Area:"]
+    keep = ["Address:", "Work Order Number:", "Problem Code:", "Assignment Type:", "Restoration Type:", "Area:", "Yard"]
+
+    # loads set of all duplicates in this batch of to_invoice reports
+    dups = dup_counter(ready_reports)
+
     # list to be filled with formated dicts
     filtered = []
     for row in ready_reports:
@@ -132,6 +155,15 @@ def format(ready_reports):
                 new_format[k] = problem_code(row["Problem Code:"])
             else:
                 new_format[k] = row[k]
+
+        # checks if this assignment has duplicates, if yes gives it Duplicate Code 1, or 0 if not
+        if dups:
+            if new_format["Work Order Number:"] in dups:
+                new_format["Duplicate Code:"] = "1"
+            else:
+                new_format["Duplicate Code:"] = "0"
+
+
         # adds formated dict to the list
         filtered.append(new_format)       
     return filtered
@@ -141,7 +173,9 @@ def format(ready_reports):
 def final_sort(formated_reports):
     formated_reports.sort(key=lambda x: x["Area:"])  # Least important
     formated_reports.sort(key=lambda x: x["Problem Code:"])
+    formated_reports.sort(key=lambda x: x["Restoration Type:"])
     formated_reports.sort(key=lambda x: x["Assignment Type:"])
+    formated_reports.sort(key=lambda x: x["Duplicate Code:"])
     formated_reports.sort(key=lambda x: x["Work Order Number:"])
     formated_reports.sort(key=lambda x: x["Yard"])
     return formated_reports

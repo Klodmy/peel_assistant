@@ -156,12 +156,13 @@ def format(ready_reports):
             else:
                 new_format[k] = row[k]
 
-        # checks if this assignment has duplicates, if yes gives it Duplicate Code 1, or 0 if not
+        # creates new column to track multiple assingment report
+        new_format["Duplicate Code:"] = "0"
+        # checks if this assignment has duplicates, if yes changes it's Duplicate Code 1
         if dups:
             if new_format["Work Order Number:"] in dups:
                 new_format["Duplicate Code:"] = "1"
-            else:
-                new_format["Duplicate Code:"] = "0"
+            
 
 
         # adds formated dict to the list

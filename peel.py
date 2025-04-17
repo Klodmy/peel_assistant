@@ -1,8 +1,6 @@
 import csv
-import json
 import re
 from datetime import date
-from collections import Counter
 
 
 
@@ -153,8 +151,10 @@ def format(ready_reports):
                     new_format[k] = row["Length:"]
             elif k == "Problem Code:":
                 new_format[k] = problem_code(row["Problem Code:"])
+            elif k == "Yard" and row["Yard"].lower() == "tullamore":   
+                new_format[k] = "COPPER"
             else:
-                new_format[k] = row[k]
+                new_format[k] = row[k].upper()
 
         # creates new column to track multiple assingment report
         new_format["Duplicate Code:"] = "0"
@@ -172,12 +172,12 @@ def format(ready_reports):
 
 # sorts formated data making it ready for invoicing without additional sorting
 def final_sort(formated_reports):
-    formated_reports.sort(key=lambda x: x["Area:"])  # Least important
-    formated_reports.sort(key=lambda x: x["Problem Code:"])
+    formated_reports.sort(key=lambda x: x["Area:"])
+    formated_reports.sort(key=lambda x: x["Work Order Number:"])
+    formated_reports.sort(key=lambda x: x["Problem Code:"])   
     formated_reports.sort(key=lambda x: x["Restoration Type:"])
     formated_reports.sort(key=lambda x: x["Assignment Type:"])
     formated_reports.sort(key=lambda x: x["Duplicate Code:"])
-    formated_reports.sort(key=lambda x: x["Work Order Number:"])
     formated_reports.sort(key=lambda x: x["Yard"])
     return formated_reports
         
